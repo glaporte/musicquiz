@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Button))]
 public class PlaylistItem : MonoBehaviour
 {
     [SerializeField]
@@ -12,10 +13,17 @@ public class PlaylistItem : MonoBehaviour
     [SerializeField]
     private RawImage _background = null;
 
-    public void SetDisplay(string title, int questionCount, Color backgroundColor)
+    private Playlist _playlist;
+
+    public void SetDisplay(Playlist playlist, int questionCount, Color backgroundColor)
     {
-        _title.text = title;
+        _playlist = playlist;
+        _title.text = playlist.playlist;
         _questionCount.text = questionCount + " questions !";
         _background.color = backgroundColor;
+
+
+        Button button = GetComponent<Button>();
+        //button.onClick.AddListener(() => playlist)
     }
 }

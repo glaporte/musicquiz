@@ -41,6 +41,9 @@ public class Song
     public string artist;
     public string picture;
     public string sample;
+    public Texture2D Picture { get; set; }
+    public AudioClip Audio { get; set; }
+
 }
 
 
@@ -59,5 +62,19 @@ public static class PlaylistsLoader
             jsonData = www.downloadHandler.text;
             Playlists = JsonUtility.FromJson<Playlists>(jsonData).playlists;
         }
+    }
+    public static IEnumerator LoadPlaylistContent(Playlist playlist)
+    {
+        foreach (Question question in playlist.questions)
+        {
+            UnityWebRequest www = UnityWebRequestTexture.GetTexture(question.song.picture);
+            yield return www.SendWebRequest();
+            question.song.Picture = ((DownloadHandlerTexture)www.downloadHandler).texture as Texture2D;
+
+            UnityWebRequest www2 = UnityWebRequestMultimedia.GetAudioClip(question.song.sample, AudioType.WAV);
+            yield return www2.SendWebRequest();
+            question.song.Audio = ((DownloadHandlerAudioClip)www2.downloadHandler).audioClip;
+        }
+
     }
 }

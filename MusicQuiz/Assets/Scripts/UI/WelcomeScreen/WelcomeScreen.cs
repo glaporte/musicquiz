@@ -2,7 +2,7 @@
 using System.IO;
 using UnityEngine;
 
-public class WelcomeScreen : PageTemplate
+public class WelcomeScreen : MonoBehaviour
 {
     [SerializeField]
     private GameObject _playlistItem = null;
@@ -15,7 +15,7 @@ public class WelcomeScreen : PageTemplate
 
     private IEnumerator Start()
     {
-        _pageTitle.text = "Choose a playlist and start the game !";
+        Game.Get.PageTitle.text = "Choose a playlist and start the game !";
         yield return PlaylistsLoader.LoadPlaylists(Path.Combine(Application.streamingAssetsPath, "gamedata.json"));
         if (PlaylistsLoader.Playlists != null)
         {
@@ -24,20 +24,17 @@ public class WelcomeScreen : PageTemplate
                 Playlist playlist = PlaylistsLoader.Playlists[i];
                 GameObject newItem = GameObject.Instantiate(_playlistItem);
                 newItem.transform.SetParent(_scrollViewContainer.transform, false);
-                newItem.GetComponent<PlaylistItem>().SetDisplay(playlist.playlist, 
+                newItem.GetComponent<PlaylistItem>().SetDisplay(playlist, 
                     playlist.questions.Length,
                     _playListColor[i % 2]);
+
+                StartCoroutine(PlaylistsLoader.LoadPlaylistContent(playlist));
             }
         }
         else
-        {//
+        {
             UnityEngine.Debug.LogError("Error Loading playlists");
         }
 
-    }
-
-    private void Update()
-    {
-        
     }
 }
