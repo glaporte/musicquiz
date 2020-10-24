@@ -16,9 +16,16 @@ public class QuizScreen : MonoBehaviour
 
     [SerializeField]
     private GameObject _choice = null;
+
+    [SerializeField]
+    private GameObject _grid = null;
+
+    [SerializeField]
+    private Button _nextQuestion = null;
     
     private AudioSource _audio;
 
+    private Playlist _activePlaylist;
 
     private void Awake()
     {
@@ -27,8 +34,8 @@ public class QuizScreen : MonoBehaviour
 
     public void SetDisplay(Playlist playlist)
     {
+        _activePlaylist = playlist;
         Game.Get.PageTitle.text = playlist.playlist;
-        _questionNumber.text = playlist.questions.Length.ToString();
         SetQuestion(playlist.questions[0], 1);
     }
 
@@ -37,12 +44,19 @@ public class QuizScreen : MonoBehaviour
         foreach (Choice choice in question.choices)
         {
             GameObject item = GameObject.Instantiate(_choice);
-            item.GetComponent<QuizChoice>().SetDisplay(choice);
+            item.GetComponent<QuizChoice>().SetDisplay(choice, ChoiceSelected, index);
+            item.transform.SetParent(_grid.transform, false);
         }
 
-        _questionNumber.text = index.ToString();
+        _questionNumber.text = index.ToString() + " on " + _activePlaylist.questions.Length + " questions.";
         _artist.texture = question.song.Picture;
-        _audio.PlayOneShot(question.song.Audio);
+        _audio.clip = question.song.Audio;
+        _audio.PlayDelayed(0.5f);
+    }
+    
+    public void ChoiceSelected(int answerIndex)
+    {
+
     }
 
     private void Update()

@@ -24,6 +24,6 @@ public class PlaylistItem : MonoBehaviour
 
 
         Button button = GetComponent<Button>();
-        //button.onClick.AddListener(() => playlist)
+        button.onClick.AddListener(() => Game.Get.StartGame(playlist));
     }
 }
