@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(AudioSource))]
@@ -19,9 +22,6 @@ public class QuizScreen : MonoBehaviour
     [SerializeField]
     private GameObject _grid = null;
 
-    [SerializeField]
-    private Button _nextQuestion = null;
-    
     private AudioSource _audio;
 
     private Playlist _activePlaylist;
@@ -36,9 +36,16 @@ public class QuizScreen : MonoBehaviour
     [SerializeField]
     private GameObject _resultLayer = null;
 
+    private Queue<GameObject> _quizChoices;
+
     private void Awake()
     {
         _audio = GetComponent<AudioSource>();
+        _quizChoices = new Queue<GameObject>();
+        for (int i = 0; i < 4; i++)
+        {
+            _quizChoices.Enqueue(GameObject.Instantiate(_choice));
+        }
     }
 
     public void SetDisplay(Playlist playlist)
@@ -50,7 +57,7 @@ public class QuizScreen : MonoBehaviour
 
     private void NextQuestion()
     {
-        if (_activeQuestionIndex < _activePlaylist.questions.Length)
+        if (_activeQuestionIndex + 1 < _activePlaylist.questions.Length)
         {
             _activeQuestionIndex++;
             SetQuestion(_activePlaylist.questions[_activeQuestionIndex], _activeQuestionIndex);
@@ -67,9 +74,10 @@ public class QuizScreen : MonoBehaviour
         _activeQuestionIndex = index;
         foreach (Choice choice in question.choices)
         {
-            GameObject item = GameObject.Instantiate(_choice);
+            GameObject item = _quizChoices.Dequeue();
             item.GetComponent<QuizChoice>().SetDisplay(choice, ChoiceSelected, _activeQuestionIndex);
             item.transform.SetParent(_grid.transform, false);
+            _quizChoices.Enqueue(item);
         }
 
         _questionNumber.text = _activeQuestionIndex.ToString() + " on " + _activePlaylist.questions.Length + " questions.";
@@ -93,7 +101,14 @@ public class QuizScreen : MonoBehaviour
             _badAnswer.SetActive(true);
         }
         Game.Get.AddScore(new Game.Score { good = good, velocity = _audio.time / _audio.clip.length });
+        StartCoroutine(AnimChoiceSelected());
+    }
+
+    private IEnumerator AnimChoiceSelected()
+    {
         _audio.Stop();
+        yield return new WaitForSeconds(1f);
+        _resultLayer.SetActive(false);
         NextQuestion();
     }
 

@@ -17,6 +17,7 @@ public class QuizChoice : MonoBehaviour
         _title.text = choice.title;
         _artist.text = choice.artist;
         _button = GetComponent<Button>();
+        _button.onClick.RemoveAllListeners();
         _button.onClick.AddListener(() =>
         {
             callbackAnswer(answerIndex);

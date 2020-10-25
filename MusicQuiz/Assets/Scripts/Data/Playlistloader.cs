@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -63,18 +64,35 @@ public static class PlaylistsLoader
             Playlists = JsonUtility.FromJson<Playlists>(jsonData).playlists;
         }
     }
-    public static IEnumerator LoadPlaylistContent(Playlist playlist)
+    public static void LoadPlaylistContent(Playlist playlist, bool firstQuestionOnly)
     {
         foreach (Question question in playlist.questions)
         {
-            UnityWebRequest www = UnityWebRequestTexture.GetTexture(question.song.picture);
-            yield return www.SendWebRequest();
-            question.song.Picture = ((DownloadHandlerTexture)www.downloadHandler).texture as Texture2D;
+            if (question.song.Picture == null)
+            {
+                Game.Get.StartCoroutine(DownloadPicture(question.song));
+            }
 
-            UnityWebRequest www2 = UnityWebRequestMultimedia.GetAudioClip(question.song.sample, AudioType.WAV);
-            yield return www2.SendWebRequest();
-            question.song.Audio = ((DownloadHandlerAudioClip)www2.downloadHandler).audioClip;
+            if (question.song.Audio == null)
+            {
+                Game.Get.StartCoroutine(DownloadAudio(question.song));
+            }
+            if (firstQuestionOnly)
+                break;
         }
+    }
 
+    private static IEnumerator DownloadPicture(Song song)
+    {
+        UnityWebRequest www = UnityWebRequestTexture.GetTexture(song.picture);
+        yield return www.SendWebRequest();
+        song.Picture = ((DownloadHandlerTexture)www.downloadHandler).texture as Texture2D;
+    }
+
+    private static IEnumerator DownloadAudio(Song song)
+    {
+        UnityWebRequest www2 = UnityWebRequestMultimedia.GetAudioClip(song.sample, AudioType.WAV);
+        yield return www2.SendWebRequest();
+        song.Audio = ((DownloadHandlerAudioClip)www2.downloadHandler).audioClip;
     }
 }

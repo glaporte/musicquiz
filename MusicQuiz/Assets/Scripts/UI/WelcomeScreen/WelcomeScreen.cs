@@ -28,12 +28,12 @@ public class WelcomeScreen : MonoBehaviour
                     playlist.questions.Length,
                     _playListColor[i % 2]);
 
-                StartCoroutine(PlaylistsLoader.LoadPlaylistContent(playlist));
+                PlaylistsLoader.LoadPlaylistContent(playlist, true);
             }
         }
         else
         {
-            UnityEngine.Debug.LogError("Error Loading playlists");
+            Debug.LogError("Error Loading playlists");
         }
 
     }

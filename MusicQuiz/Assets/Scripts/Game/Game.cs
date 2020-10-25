@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class Game : MonoBehaviour
 {
     [SerializeField]
+    private Animation _animation = null;
+    [SerializeField]
     public Text PageTitle = null;
     public static Game Get { get; private set; }
 
@@ -23,7 +25,17 @@ public class Game : MonoBehaviour
     {
         _results = new List<Score>();
         Get = this;
+        Initiatilization();
     }
+
+    public void Initiatilization()
+    {
+        Playlist.gameObject.SetActive(true);
+        Quiz.gameObject.SetActive(false);
+        _animation.gameObject.SetActive(true);
+        _animation.Play();
+    }
+
 
     public void AddScore(Score score)
     {
@@ -37,6 +49,7 @@ public class Game : MonoBehaviour
 
     public void StartGame(Playlist playlist)
     {
+        PlaylistsLoader.LoadPlaylistContent(playlist, false);
         Playlist.gameObject.SetActive(false);
         Quiz.gameObject.SetActive(true);
         Quiz.SetDisplay(playlist);
