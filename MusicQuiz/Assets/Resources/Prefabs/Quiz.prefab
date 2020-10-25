@@ -1052,6 +1052,8 @@ MonoBehaviour:
   _goodAnswer: {fileID: 3756113735521525712}
   _badAnswer: {fileID: 179205376}
   _resultLayer: {fileID: 1309001916784474123}
+  _goodAnswerAudio: {fileID: 8300000, guid: 9697e49bd126ed140a27ab3a3918393f, type: 3}
+  _badAnswerAudio: {fileID: 8300000, guid: 44c74d2c20910154190125012e605890, type: 3}
 --- !u!82 &5750154821332079682
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1392,11 +1394,11 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 1
+  m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 350, y: 50}
-  m_Spacing: {x: 10, y: 10}
+  m_CellSize: {x: 320, y: 50}
+  m_Spacing: {x: 20, y: 10}
   m_Constraint: 1
   m_ConstraintCount: 2
 --- !u!1 &5750154821781201056

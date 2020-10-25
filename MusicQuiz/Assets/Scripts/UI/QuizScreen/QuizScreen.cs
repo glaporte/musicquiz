@@ -35,6 +35,10 @@ public class QuizScreen : MonoBehaviour
     private GameObject _badAnswer = null;
     [SerializeField]
     private GameObject _resultLayer = null;
+    [SerializeField]
+    private AudioClip _goodAnswerAudio = null;
+    [SerializeField]
+    private AudioClip _badAnswerAudio = null;
 
     private Queue<GameObject> _quizChoices;
 
@@ -52,14 +56,14 @@ public class QuizScreen : MonoBehaviour
     {
         _activePlaylist = playlist;
         Game.Get.PageTitle.text = playlist.playlist;
-        SetQuestion(playlist.questions[0], 1);
+        SetQuestion(playlist.questions[0], 0);
     }
 
     private void NextQuestion()
     {
-        if (_activeQuestionIndex + 1 < _activePlaylist.questions.Length)
+        _activeQuestionIndex++;
+        if (_activeQuestionIndex < _activePlaylist.questions.Length)
         {
-            _activeQuestionIndex++;
             SetQuestion(_activePlaylist.questions[_activeQuestionIndex], _activeQuestionIndex);
         }
         else
@@ -70,17 +74,21 @@ public class QuizScreen : MonoBehaviour
 
     private void SetQuestion(Question question, int index)
     {
+        _audio.volume = 1f;
         _activeQuestion = question;
         _activeQuestionIndex = index;
+
+        int cuurentChoiceIndex = 0;
         foreach (Choice choice in question.choices)
         {
             GameObject item = _quizChoices.Dequeue();
-            item.GetComponent<QuizChoice>().SetDisplay(choice, ChoiceSelected, _activeQuestionIndex);
+            item.GetComponent<QuizChoice>().SetDisplay(choice, ChoiceSelected, cuurentChoiceIndex);
             item.transform.SetParent(_grid.transform, false);
             _quizChoices.Enqueue(item);
+            cuurentChoiceIndex++;
         }
 
-        _questionNumber.text = _activeQuestionIndex.ToString() + " on " + _activePlaylist.questions.Length + " questions.";
+        _questionNumber.text = (_activeQuestionIndex + 1).ToString() + " on " + _activePlaylist.questions.Length + " questions.";
         _artist.texture = question.song.Picture;
         _audio.clip = question.song.Audio;
         _audio.PlayDelayed(0.5f);
@@ -88,17 +96,20 @@ public class QuizScreen : MonoBehaviour
     
     public void ChoiceSelected(int answerIndex)
     {
+        _audio.volume = 0.33f;
         _resultLayer.SetActive(true);
         bool good = answerIndex == _activeQuestion.answerIndex;
         if (answerIndex == _activeQuestion.answerIndex)
         {
             _badAnswer.SetActive(false);
             _goodAnswer.SetActive(true);
+            Game.Get.PlayAudioFX(_goodAnswerAudio, 1f);
         }
         else
         {
             _goodAnswer.SetActive(false);
             _badAnswer.SetActive(true);
+            Game.Get.PlayAudioFX(_badAnswerAudio, 1f);
         }
         Game.Get.AddScore(new Game.Score { good = good, velocity = _audio.time / _audio.clip.length });
         StartCoroutine(AnimChoiceSelected());
@@ -106,8 +117,7 @@ public class QuizScreen : MonoBehaviour
 
     private IEnumerator AnimChoiceSelected()
     {
-        _audio.Stop();
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1.5f);
         _resultLayer.SetActive(false);
         NextQuestion();
     }
