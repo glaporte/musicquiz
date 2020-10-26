@@ -17,24 +17,35 @@ public class ScoreScreen : MonoBehaviour
     private GameObject _questionAnswerSummaryPrefab = null;
 
     [SerializeField]
-    private Queue<GameObject> _answers;
+    private Queue<ScoreItem> _answers;
 
     private void Awake()
     {
         _replayButton.onClick.AddListener(() => { Game.Get.Replay(); });
-        _answers = new Queue<GameObject>();
+        _answers = new Queue<ScoreItem>();
         for (int i = 0; i < Game.MAX_QUESTION; i++)
         {
-            _answers.Enqueue(Instantiate(_questionAnswerSummaryPrefab));
+            GameObject obj = Instantiate(_questionAnswerSummaryPrefab);
+            _answers.Enqueue(obj.GetComponent<ScoreItem>());
+            obj.transform.SetParent(_summaryLayer.transform, false);
         }
     }
 
-    public void Display( List<Game.Score> scores)
+    public void Display(List<Game.Score> scores)
     {
+        float sum = 0;
         foreach (Game.Score score in scores)
         {
-            //_answer = _answers.Dequeue();
+            ScoreItem scoreItem = _answers.Dequeue();
+            scoreItem.Display(score);
+            if (score.good)
+            {
+                sum += 1;
+                sum += score.velocity;
+            }
+            _answers.Enqueue(scoreItem);
         }
+        _uiScore.text = sum.ToString("0.00");
     }
 
 }

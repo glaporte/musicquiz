@@ -23,6 +23,7 @@ public class Game : MonoBehaviour
     public struct Score
     {
         public bool good;
+        public float time;
         public float velocity;
         public Question question;
     }
@@ -42,6 +43,7 @@ public class Game : MonoBehaviour
         _audio.Play();
         Playlist.gameObject.SetActive(true);
         Quiz.gameObject.SetActive(false);
+        ScoreScreen.gameObject.SetActive(false);
         _animation.gameObject.SetActive(true);
         _animation.Play();
     }

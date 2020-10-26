@@ -7,6 +7,8 @@ using UnityEngine.UI;
 public class QuizScreen : MonoBehaviour
 {
     [SerializeField]
+    private CanvasGroup _blockAnswer = null;
+    [SerializeField]
     private GameObject _progressLayer = null;
     [SerializeField]
     private GameObject _goodAnswerTickPrefab = null;
@@ -63,15 +65,17 @@ public class QuizScreen : MonoBehaviour
 
         _activePlaylist = playlist;
         Game.Get.PageTitle.text = playlist.playlist;
-        SetQuestion(playlist.questions[0], 0);
+        _activeQuestionIndex = -1;
+        NextQuestion();
     }
 
     private void NextQuestion()
     {
+        _blockAnswer.blocksRaycasts = false;
         _activeQuestionIndex++;
         if (_activeQuestionIndex < _activePlaylist.questions.Length)
         {
-            SetQuestion(_activePlaylist.questions[_activeQuestionIndex], _activeQuestionIndex);
+            SetQuestion(_activePlaylist.questions[_activeQuestionIndex]);
         }
         else
         {
@@ -79,12 +83,24 @@ public class QuizScreen : MonoBehaviour
         }
     }
 
-    private void SetQuestion(Question question, int index)
+    private IEnumerator WaitLoading(Question question)
     {
+        while (question.song.Audio == null || question.song.Picture == null)
+        {
+            yield return null;
+        }
+        SetQuestion(question);
+    }
+
+    private void SetQuestion(Question question)
+    {
+        if (question.song.Audio == null || question.song.Picture == null)
+        {
+            StartCoroutine(WaitLoading(question));
+            return;
+        }
         _audio.volume = 1f;
         _activeQuestion = question;
-        _activeQuestionIndex = index;
-
         int cuurentChoiceIndex = 0;
         foreach (Choice choice in question.choices)
         {
@@ -99,9 +115,15 @@ public class QuizScreen : MonoBehaviour
         _audio.clip = question.song.Audio;
         _audio.PlayDelayed(0.5f);
         Invoke("OutOfTime", _audio.clip.length + 0.5f);
+        Invoke("EnableSelection", 0.5f);
     }
 
-    public void OutOfTime()
+    private void EnableSelection()
+    {
+        _blockAnswer.blocksRaycasts = true;
+    }
+
+    private void OutOfTime()
     {
         ChoiceSelected(-1);
     }
@@ -111,6 +133,7 @@ public class QuizScreen : MonoBehaviour
         CancelInvoke();
         _audio.volume = 0.33f;
         _resultLayer.SetActive(true);
+        _blockAnswer.blocksRaycasts = false;
         bool good = answerIndex == _activeQuestion.answerIndex;
         if (answerIndex == _activeQuestion.answerIndex)
         {
@@ -126,7 +149,7 @@ public class QuizScreen : MonoBehaviour
             Game.Get.PlayAudioFX(_badAnswerAudio, 1f);
             Instantiate(_badAnswerTickPrefab).transform.SetParent(_progressLayer.transform, false);
         }
-        Game.Get.AddScore(new Game.Score { good = good, velocity = _audio.time / _audio.clip.length, question = _activeQuestion });
+        Game.Get.AddScore(new Game.Score { good = good, time = _audio.time, velocity = 1f - (_audio.time / _audio.clip.length), question = _activeQuestion });
         StartCoroutine(AnimChoiceSelected());
     }
 
