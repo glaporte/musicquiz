@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +7,11 @@ using UnityEngine.UI;
 public class QuizScreen : MonoBehaviour
 {
     [SerializeField]
-    private Text _questionNumber = null;
+    private GameObject _progressLayer = null;
+    [SerializeField]
+    private GameObject _goodAnswerTickPrefab = null;
+    [SerializeField]
+    private GameObject _badAnswerTickPrefab = null;
 
     [SerializeField]
     private RawImage _artist = null;
@@ -46,7 +49,7 @@ public class QuizScreen : MonoBehaviour
     {
         _audio = GetComponent<AudioSource>();
         _quizChoices = new Queue<GameObject>();
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < Game.MAX_CHOICE; i++)
         {
             _quizChoices.Enqueue(GameObject.Instantiate(_choice));
         }
@@ -54,6 +57,10 @@ public class QuizScreen : MonoBehaviour
 
     public void SetDisplay(Playlist playlist)
     {
+        // Destroy progress in replay game case.
+        foreach (Transform t in _progressLayer.transform)
+            Destroy(t.gameObject);
+
         _activePlaylist = playlist;
         Game.Get.PageTitle.text = playlist.playlist;
         SetQuestion(playlist.questions[0], 0);
@@ -68,7 +75,7 @@ public class QuizScreen : MonoBehaviour
         }
         else
         {
-
+            Game.Get.DisplayScore(_activePlaylist);
         }
     }
 
@@ -88,14 +95,20 @@ public class QuizScreen : MonoBehaviour
             cuurentChoiceIndex++;
         }
 
-        _questionNumber.text = (_activeQuestionIndex + 1).ToString() + " on " + _activePlaylist.questions.Length + " questions.";
         _artist.texture = question.song.Picture;
         _audio.clip = question.song.Audio;
         _audio.PlayDelayed(0.5f);
+        Invoke("OutOfTime", _audio.clip.length + 0.5f);
+    }
+
+    public void OutOfTime()
+    {
+        ChoiceSelected(-1);
     }
     
     public void ChoiceSelected(int answerIndex)
     {
+        CancelInvoke();
         _audio.volume = 0.33f;
         _resultLayer.SetActive(true);
         bool good = answerIndex == _activeQuestion.answerIndex;
@@ -104,14 +117,16 @@ public class QuizScreen : MonoBehaviour
             _badAnswer.SetActive(false);
             _goodAnswer.SetActive(true);
             Game.Get.PlayAudioFX(_goodAnswerAudio, 1f);
+           Instantiate(_goodAnswerTickPrefab).transform.SetParent(_progressLayer.transform, false);
         }
         else
         {
             _goodAnswer.SetActive(false);
             _badAnswer.SetActive(true);
             Game.Get.PlayAudioFX(_badAnswerAudio, 1f);
+            Instantiate(_badAnswerTickPrefab).transform.SetParent(_progressLayer.transform, false);
         }
-        Game.Get.AddScore(new Game.Score { good = good, velocity = _audio.time / _audio.clip.length });
+        Game.Get.AddScore(new Game.Score { good = good, velocity = _audio.time / _audio.clip.length, question = _activeQuestion });
         StartCoroutine(AnimChoiceSelected());
     }
 
