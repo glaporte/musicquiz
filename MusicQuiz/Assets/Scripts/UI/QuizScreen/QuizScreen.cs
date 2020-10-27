@@ -105,16 +105,17 @@ public class QuizScreen : MonoBehaviour
         _activeQuestion = question;
         int cuurentChoiceIndex = 0;
         List<GameObject> choices = new List<GameObject>();
+
         foreach (Choice choice in question.choices)
         {
             GameObject item = _quizChoices.Dequeue();
             item.GetComponent<QuizChoice>().SetDisplay(choice, ChoiceSelected, cuurentChoiceIndex);
             _quizChoices.Enqueue(item);
             cuurentChoiceIndex++;
-            item.transform.SetParent(null);
             choices.Add(item);
         }
         choices = choices.OrderBy(x => Guid.NewGuid()).ToList();
+        _grid.transform.DetachChildren();
         foreach (GameObject item in choices)
         {
             item.transform.SetParent(_grid.transform, false);
