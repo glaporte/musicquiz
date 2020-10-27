@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -102,14 +104,22 @@ public class QuizScreen : MonoBehaviour
         _audio.volume = 1f;
         _activeQuestion = question;
         int cuurentChoiceIndex = 0;
+        List<GameObject> choices = new List<GameObject>();
         foreach (Choice choice in question.choices)
         {
             GameObject item = _quizChoices.Dequeue();
             item.GetComponent<QuizChoice>().SetDisplay(choice, ChoiceSelected, cuurentChoiceIndex);
-            item.transform.SetParent(_grid.transform, false);
             _quizChoices.Enqueue(item);
             cuurentChoiceIndex++;
+            item.transform.SetParent(null);
+            choices.Add(item);
         }
+        choices = choices.OrderBy(x => Guid.NewGuid()).ToList();
+        foreach (GameObject item in choices)
+        {
+            item.transform.SetParent(_grid.transform, false);
+        }
+
 
         _artist.texture = question.song.Picture;
         _audio.clip = question.song.Audio;
